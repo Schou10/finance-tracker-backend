@@ -17,6 +17,7 @@ const configuration = new Configuration({
 const plaidClient = new PlaidApi(configuration);
 
 router.post('/create_link_token', async function(req, res, next){
+  console.log(req.body);
   const {clientUserId} = req.body;
   const plaidRequest = {
       user: {
@@ -25,7 +26,7 @@ router.post('/create_link_token', async function(req, res, next){
       client_name: "Andrew Schouten",
       products: process.env.PLAID_PRODUCTS.split(","),
       language: 'en',
-      redirect_uri: process.env.PLAID_REDIRECT_URI || "http://localhost:3000",
+      redirect_uri: process.env.PLAID_REDIRECT_URI || "http://localhost:3000/",
       country_codes: process.env.PLAID_COUNTRY_CODES.split(","),
   };
     try {
@@ -33,7 +34,7 @@ router.post('/create_link_token', async function(req, res, next){
         const createTokenResponse = await plaidClient.linkTokenCreate(plaidRequest);
         response.json(createTokenResponse.data);
     } catch(err){
-        console.log("Plaid Request:", plaidRequest)
+        console.error('Error creating link token:', err)
         next(err)
     }
 });

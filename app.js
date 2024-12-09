@@ -6,9 +6,11 @@ const {errors} = require('celebrate');
 const mainRouter = require('./routes/index');
 const errorHandler = require('./middlewares/error-handler');
 const {requestLogger, errorLogger} = require('./middlewares/loggers')
+const bodyParser = require("body-parser");
+
 
 const app = express();
-const {PORT= 3001} = process.env.PORT;
+const {PORT= 3001} = process.env;
 
 mongoose.set('strictQuery', true);
 
@@ -19,6 +21,8 @@ mongoose
 app.use(express.json());
 
 app.use(cors());
+
+app.use(bodyParser.json());
 
 app.use(requestLogger);
 
