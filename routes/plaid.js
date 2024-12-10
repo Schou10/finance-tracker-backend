@@ -16,13 +16,10 @@ const configuration = new Configuration({
 
 const plaidClient = new PlaidApi(configuration);
 
-router.post('/create_link_token', async function(req, res, next){
-  console.log(req.body);
+router.post('/create_link_token', async (req, res, next)=>{
   const {clientUserId} = req.body;
   const plaidRequest = {
-      user: {
-          client_user_id: clientUserId,
-      },
+      user: {client_user_id: clientUserId,},
       client_name: "Andrew Schouten",
       products: process.env.PLAID_PRODUCTS.split(","),
       language: 'en',
@@ -30,9 +27,8 @@ router.post('/create_link_token', async function(req, res, next){
       country_codes: process.env.PLAID_COUNTRY_CODES.split(","),
   };
     try {
-        // Step 2: Request a Link token from the Plaid service
         const createTokenResponse = await plaidClient.linkTokenCreate(plaidRequest);
-        response.json(createTokenResponse.data);
+        res.json(createTokenResponse.data);
     } catch(err){
         console.error('Error creating link token:', err)
         next(err)
@@ -41,6 +37,7 @@ router.post('/create_link_token', async function(req, res, next){
 
 router.post('/exchange_public_token', async function (req, res, next) {
   const {public_token} = req.body
+  console.log("Public Token:",public_token)
   if (!public_token){
     next(new BadRequestError(err400.messgae));
   }
@@ -50,7 +47,7 @@ router.post('/exchange_public_token', async function (req, res, next) {
     });
     const {access_token,item_id} = tokenResponse.data
     // Store accessToken and itemId securely
-    response.json({ access_token, item_id });
+    res.json({ access_token, item_id });
   } catch (err) {
     next(err)
   }
@@ -61,14 +58,15 @@ router.get('/transactions', async (req, res, next) => {
   if (!accessToken){
     next(new BadRequestError(err400.message));
   }
-  const startDate = "2024-01-01";
-  const endDate = "2024-12-31";
+  const now = new Date();
+  const thirtyDaysAgo = new Date();
+  thirtyDaysAgo.setDate(now.getDate()-30);
 
   try {
     const response = await plaidClient.transactionsGet({
       access_token: accessToken,
-      start_date: startDate,
-      end_date: endDate,
+      start_date: thirtyDaysAgo.toISOString().split("T")[0],
+      end_date: now.toISOString().split("T")[0],
     });
     res.json(response.data.transactions);
   } catch (err) {
