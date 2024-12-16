@@ -14,9 +14,13 @@ const {PORT= 3001} = process.env;
 
 mongoose.set('strictQuery', true);
 
-mongoose
-    .connect('mongodb://localhost:27017/finance-tracker')
-    .catch(console.error);
+mongoose.connect('mongodb://127.0.0.1:27017/finance-tracker')
+    .then(() => console.log('MongoDB connected successfully'))
+    .catch(err => console.error('MongoDB connection error:', err));
+
+mongoose.connection.on('error', err => {
+    console.error('MongoDB connection error occurred:', err);
+});
 
 app.use(express.json());
 
@@ -39,5 +43,10 @@ app.use(errorLogger);
 app.use(errors());
 
 app.use(errorHandler);
+
+app.use((err, req, res, next) => {
+    console.error(err.stack);
+    res.status(500).send({ error: err.message });
+  });
 
 app.listen(PORT, ()=>console.log(`Server Started on port ${PORT}`));

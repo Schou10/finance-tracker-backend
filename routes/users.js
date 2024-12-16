@@ -4,7 +4,7 @@ const {validateUserEdit} = require("../middlewares/validation")
 const auth = require("../middlewares/auth");
 
 // Route to update user
-router.patch("/me", auth, validateUserEdit,updateUser);
+router.patch("/me", auth, validateUserEdit, updateUser);
 
 router.get("/me", auth, getCurrentUser);
 

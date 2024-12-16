@@ -37,8 +37,8 @@ const userSchema = new mongoose.Schema({
   },
   plaidData: 
     {
-      accessToken: { type: Object, required:true}, // Encrypted Token is an object
-      accountId: {type: String, required: true},
+      accessToken: { type: Object, default: null,}, // Encrypted Token is an object
+      accountId: {type: String, default: null,},
     }
   ,
 });
