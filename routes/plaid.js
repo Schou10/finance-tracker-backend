@@ -201,4 +201,64 @@ router.get('/transactions', auth, async (req, res, next) => {
   }
 });
 
+router.get('/budget/accounts', auth, async (req, res, next) => {
+  try {
+    const user = await User.findById(req.user._id).select('plaidData');
+    if (!user?.plaidData?.accessToken) {
+      throw new Error('Access token not found for the user');
+    }
+    const decryptedToken = decrypt(user.plaidData.accessToken);
+    const accountsResponse = await plaidClient.accountsGet({ access_token: decryptedToken });
+    res.json(accountsResponse.data.accounts);
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.get('/budget/overview', auth, async (req, res, next) => {
+  try {
+    const user = await User.findById(req.user._id).select('plaidData');
+    if (!user?.plaidData?.accessToken) {
+      throw new Error('Access token not found for the user');
+    }
+    const decryptedToken = decrypt(user.plaidData.accessToken);
+
+    // Fetch transactions for the past 30 days
+    const today = new Date().toISOString().split('T')[0];
+    const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+
+    const transactionsResponse = await plaidClient.transactionsGet({
+      access_token: decryptedToken,
+      start_date: thirtyDaysAgo,
+      end_date: today,
+    });
+
+    const transactions = transactionsResponse.data.transactions;
+
+    // Process data for budget overview
+    const spendingByCategory = {};
+    let totalIncome = 0;
+    let totalExpenses = 0;
+
+    transactions.forEach((txn) => {
+      if (txn.amount > 0) {
+        totalExpenses += txn.amount;
+        const category = txn.category?.[0] || 'Uncategorized';
+        spendingByCategory[category] = (spendingByCategory[category] || 0) + txn.amount;
+      } else {
+        totalIncome += Math.abs(txn.amount);
+      }
+    });
+
+    res.json({
+      totalIncome,
+      totalExpenses,
+      spendingByCategory,
+      netCashFlow: totalIncome - totalExpenses,
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
 module.exports = router;
