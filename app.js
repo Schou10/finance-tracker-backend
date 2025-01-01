@@ -14,7 +14,7 @@ const app = express();
 const {PORT= 3001} = process.env;
 
 const corsOptions ={
-    origin: ['http://finance-tracker.zanity.net', 'https://finance-tracker.zanity.net'], // Add allowed origins
+    origin: ['https://www.finance-tracker.zanity.net', 'https://finance-tracker.zanity.net'], // Add allowed origins
     methods: ['GET', 'POST', 'PATCH', 'DELETE'], // Allowed methods
     allowedHeaders: ['Content-Type', 'Authorization'], // Allowed headers
 }
@@ -31,7 +31,7 @@ mongoose.connection.on('error', err => {
 
 app.use(express.json());
 
-app.use(cors(corsOptions));
+app.use("*",cors(corsOptions));
 
 app.use(bodyParser.json());
 
