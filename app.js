@@ -13,6 +13,12 @@ const bodyParser = require("body-parser");
 const app = express();
 const {PORT= 3001} = process.env;
 
+const corsOptions ={
+    origin: ['http://finance-tracker.zanity.net', 'https://finance-tracker.zanity.net'], // Add allowed origins
+    methods: ['GET', 'POST', 'PATCH', 'DELETE'], // Allowed methods
+    allowedHeaders: ['Content-Type', 'Authorization'], // Allowed headers
+}
+
 mongoose.set('strictQuery', true);
 
 mongoose.connect('mongodb://127.0.0.1:27017/finance-tracker')
@@ -25,7 +31,7 @@ mongoose.connection.on('error', err => {
 
 app.use(express.json());
 
-app.use(cors());
+app.use(cors(corsOptions));
 
 app.use(bodyParser.json());
 
