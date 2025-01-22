@@ -2,6 +2,7 @@ const router = require("express").Router();
 const { err404 } = require("../utils/errors");
 const userRouter = require("./users");
 const loginSignupRouter = require("./signin-signup");
+const goalRoutes = require("./goal")
 const { NotFoundError } = require("../errors/notfounderror");
 const plaidRouter = require('./plaid')
 

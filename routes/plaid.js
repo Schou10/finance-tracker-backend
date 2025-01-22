@@ -46,7 +46,7 @@ router.post('/create_link_token', async (req, res, next)=>{
 
 // Exchange Public token for Access Token
 router.post('/exchange_public_token', auth, async function (req, res, next) {
-  const {public_token} = req.body
+  const {public_token} = req.body;
   if (!public_token){
     next(new BadRequestError(err400.message));
   }
@@ -128,6 +128,7 @@ router.get('/transactions/sync', auth, async (req, res, next) => {
 // Saves Accounts aquired from plaid
 router.post('/accounts', auth, async (req, res, next) => {
   const {  itemId, accountData } = req.body;
+  console.log(itemId, accountData);
   try{
     const existingAccount = await Account.findOne({
       userId: req.user._id,
@@ -145,7 +146,6 @@ router.post('/accounts', auth, async (req, res, next) => {
       itemId,
       accountData: encryptedData, // Store the encrypted object
     });
-
     res.status(201).send(newAccount);
   } catch (err) {
     next(err);

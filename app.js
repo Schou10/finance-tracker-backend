@@ -14,26 +14,25 @@ const app = express();
 const {PORT= 3001} = process.env;
 
 const corsOptions ={
-    origin: ['https://www.finance-tracker.zanity.net', 'https://finance-tracker.zanity.net'], // Add allowed origins
-    methods: ['GET', 'POST', 'PATCH', 'DELETE'], // Allowed methods
-    allowedHeaders: ['Content-Type', 'Authorization'], // Allowed headers
+    origin: ['https://www.finance-tracker.zanity.net', 'https://finance-tracker.zanity.net', 'http://localhost:3000/'], // Add allowed origins
+    // methods: ['GET', 'POST', 'PATCH', 'DELETE'], // Allowed methods
+    // allowedHeaders: ['Content-Type', 'Authorization'], // Allowed headers
 }
 
+
 mongoose.set('strictQuery', true);
-
 mongoose.connect('mongodb://127.0.0.1:27017/finance-tracker')
-    .then(() => console.log('MongoDB connected successfully'))
-    .catch(err => console.error('MongoDB connection error:', err));
-
+.then(() => console.log('MongoDB connected successfully'))
+.catch(err => console.error('MongoDB connection error:', err));
 mongoose.connection.on('error', err => {
     console.error('MongoDB connection error occurred:', err);
 });
 
 app.use(express.json());
-app.options("*", cors());
-app.use("*",cors(corsOptions));
+app.use(cors("*"));
 
-app.use(bodyParser.json());
+
+// app.use(bodyParser.json());
 
 app.use(requestLogger);
 

@@ -1,12 +1,14 @@
+const {v4: uuidv4 } = require('uuid');
 const Goal = require('../models/goal');
 
 // Create a new Goal
 const createGoal = async (req, res, next) => {
   try {
-    const { itemId, goalData } = req.body;
+    const { goalData } = req.body;
+    console.log(goalData);
     const goal = await Goal.create({
       userId: req.user._id,
-      itemId,
+      itemId: uuidv4(),
       goalData,
     });
     res.status(201).json(goal);

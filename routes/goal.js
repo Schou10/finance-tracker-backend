@@ -1,5 +1,5 @@
 const express = require('express');
-const { createGoal, getGoals, updateGoal, deleteGoal } = require('../controllers/goalController');
+const { createGoal, getGoals, updateGoal, deleteGoal } = require('../controllers/goal');
 const authMiddleware = require('../middlewares/auth'); // Assuming you have an auth middleware
 
 const router = express.Router();

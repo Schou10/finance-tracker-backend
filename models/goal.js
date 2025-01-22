@@ -16,8 +16,8 @@ const GoalSchema = new Schema({
     name: {type: String, required: true },
     description: { type: String, required: true },
     end_date: { type: Date, required: true },
-    amoount: { type: Number, required: true }, // Total amount to achieve the goal
-    currentAmmount: { type: Number, default: 0 }, //Tracks progress (defualt to 0)
+    amount: { type: Number, required: true }, // Total amount to achieve the goal
+    currentAmount: { type: Number, default: 0 }, //Tracks progress (defualt to 0)
   },
   createdAt:{
     type: Date,
