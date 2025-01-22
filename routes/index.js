@@ -17,7 +17,7 @@ router.use("", loginSignupRouter);
 router.use("", plaidRouter);
 
 // Goal
-router.use('/goals', goalRoutes);
+router.use("/goals", goalRoutes);
 
 // Route response if route is invalid
 router.use(() => {
