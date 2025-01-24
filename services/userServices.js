@@ -15,15 +15,5 @@ async function getAccessTokenForUser(userId) {
   
 }
 
-async function storeAccessTokenForUser(userId, accessToken, accountId) {
-  if (!userID || !accessToken){
-    throw new Error("User ID and access token are required");
-  }
-  const encryptedToken = encrypt(accessToken);
-  return User.findByIdAndUpdate(
-    userId,
-    {$push: { plaidData:{  accessToken: encryptedToken, accountId,}}},
-      {new: true, runValidators: true});
-};
 
-module.exports = { getAccessTokenForUser, storeAccessTokenForUser };
+module.exports = { getAccessTokenForUser };
