@@ -8,7 +8,6 @@ const {linkTokenCreate,
   transactionSave,
   accountsRetrieve,
   transactionRetrieve,
-  budgetAccounts,
   budgetOverview} = require("../controllers/plaid");
 const auth = require("../middlewares/auth");
 
@@ -38,8 +37,6 @@ router.get('/accounts', auth, accountsRetrieve);
 
 // Retrieves  Stored Transactions
 router.get('/transactions', auth, transactionRetrieve);
-
-router.get('/budget/accounts', auth, budgetAccounts);
 
 router.get('/budget/overview', auth, budgetOverview);
 

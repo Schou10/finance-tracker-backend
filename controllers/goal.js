@@ -1,5 +1,6 @@
 const {v4: uuidv4 } = require('uuid');
 const Goal = require('../models/goal');
+const User = require("../models/users");
 const {BadRequestError} = require('../errors/badrequesterror');
 const {NotFoundError} = require('../errors/notfounderror');
 const {UnauthorizedError} = require('../errors/unauthorizederror');
@@ -8,7 +9,6 @@ const {UnauthorizedError} = require('../errors/unauthorizederror');
 const createGoal = async (req, res, next) => {
   try {
     const { goalData } = req.body;
-    console.log(goalData);
     const goal = await Goal.create({
       userId: req.user._id,
       itemId: uuidv4(),
@@ -67,7 +67,6 @@ const saveToGoal = async (req, res, next) => {
 
   try {
     const goal = await Goal.findById(goalId);
-    console.log("Goal: ", goal);
     if (!goal) {
       return next(new NotFoundError("Goal not Found"));
     }

@@ -2,12 +2,12 @@ const {encrypt, decrypt} = require("../utils/encryption");
 const { Configuration, PlaidApi, PlaidEnvironments }= require('plaid');
 const {BadRequestError} = require('../errors/badrequesterror')
 const {NotFoundError} = require('../errors/notfounderror')
-const {err400, err404} = require('../utils/errors');
 const User = require("../models/users");
 const { getAccessTokenForUser } = require("../services/userServices");
 const Account  = require('../models/accounts');
 const Transaction = require('../models/transactions');
 
+// Configuration for plaid Environment
 const configuration = new Configuration({
   basePath: PlaidEnvironments.sandbox,
   baseOptions: {
@@ -21,12 +21,12 @@ const configuration = new Configuration({
 // Creates PlaidClient for User to sync with application
 const plaidClient = new PlaidApi(configuration);
 
-// Plaid Set up link Token
+// Plaid Set up link Token App.jsx Return LinkTokenRes.data
 const linkTokenCreate = async (req, res, next)=>{
   const {clientUserId} = req.body;
   const plaidRequest = {
       user: {client_user_id: clientUserId,},
-      client_name: "Andrew Schouten",
+      client_name: "Andrew Schouten", //Company Name on Plaid Network for this Application
       products: process.env.PLAID_PRODUCTS.split(","),
       language: 'en',
       redirect_uri: process.env.PLAID_REDIRECT_URI || "http://localhost:3000/",
@@ -40,41 +40,39 @@ const linkTokenCreate = async (req, res, next)=>{
         next(err)
     }
 }
-// Plaid Exchange Public Token
+// Plaid Exchange Public Token plaidbutton.jsx stores Access token to server
 const exchangePublicToken = async (req, res, next) =>{
   const {public_token} = req.body;
   if (!public_token){
-    next(new BadRequestError(err400.message));
+    next(new BadRequestError('Public token not found'));
   }
   try {
     const tokenResponse = await plaidClient.itemPublicTokenExchange({
       public_token,
     });
     const  encryptedAccessToken = encrypt(tokenResponse.data.access_token);
+    const itemId = tokenResponse.data.item_id;
 
     // Store the plaidData for access token and itemId to user
-    const updatedUser = await User.findByIdAndUpdate(
-      req.user._id,
-      {
-        "plaidData.accessToken": encryptedAccessToken,
-        "plaidData.itemId": tokenResponse.data.item_id,
-      }, 
-      { new: true, runValidators: true  }
-    );
-    if (!updatedUser) {
-      next(new NotFoundError(err404.message));
+    const user = await User.findById(req.user._id);
+    if (!user) {
+      return next(new NotFoundError('User not found'));
     }
+    // Add new access token and account ID to plaidData array
+    user.plaidData.push({ accessToken: encryptedAccessToken, accountId: itemId });
 
+    await user.save();
     res.status(200).send( {message: "Access token stored successfully"});
   } catch (err) {
     next(err)
 }}
-// Plaid Retrieve accounts???
+
+// Plaid Retrieve accounts from API for routing number information to set up transfers
 const authAccounts = async (req, res, next)=>{
   try {
     const accessToken = await getAccessTokenForUser(req.user._id);
     if (!accessToken){
-      next(new NotFoundError(err404.message))
+      next(new NotFoundError("Access token not found"));
     }
     const decryptedAccessToken =  decrypt(accessToken);
     const response = await plaidClient.authGet({access_token: decryptedAccessToken});
@@ -89,35 +87,52 @@ const authAccounts = async (req, res, next)=>{
 // Plaid Sync from API
 const accountsSync = async (req, res, next)=>{
   try{
-      const  accessToken = await getAccessTokenForUser(req.user._id);
-      if (!accessToken){
-        next(new NotFoundError(err404.message))
+      const  accessTokens = await getAccessTokenForUser(req.user._id);
+      if (!accessTokens || accessTokens.length === 0){
+        next(new NotFoundError("No access tokens found"));
       }
-      const decryptedAccessToken =  decrypt(accessToken);
-      const accounts = await plaidClient.authGet({access_token: decryptedAccessToken});
-      return res.json({accounts:accounts.data.accounts, item:accounts.data.item});
+      const accounts = [];
+      for (const encryptedAccessToken of accessTokens){
+        const decryptedAccessToken =  decrypt(encryptedAccessToken);
+        const response = await plaidClient.accountsBalanceGet({access_token: decryptedAccessToken});
+        accounts.push(...response.data.accounts)
+      }
+
+
+      return res.json({accounts});
     } catch(err){
       next(err)
     }
   }
 
-
-
-
-const transactionSync = async (req, res, next)=>{
+const transactionSync = async (req, res, next, returnData = false)=>{
   try {
-      const accessToken = await getAccessTokenForUser(req.user._id);
-      const decryptedAccessToken =  decrypt(accessToken);
-      const now = new Date();
-      const thirtyDaysAgo = new Date();
-      thirtyDaysAgo.setDate(now.getDate() - 30);
-      const Transactionrequest={
-        access_token: decryptedAccessToken,
-        start_date: thirtyDaysAgo.toISOString().split("T")[0],
-        end_date: now.toISOString().split("T")[0],
+      const accessTokens = await getAccessTokenForUser(req.user._id);
+      if (!accessTokens || accessTokens.length === 0){
+        next(new NotFoundError("No access tokens found"));
       }
-      const transactions  = await plaidClient.transactionsGet(Transactionrequest);
-      return res.status(200).json(transactions.data.transactions);
+      const transactions = []
+      const today = new Date().toISOString().split("T")[0];
+      const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+      
+      for (const encryptedAccessToken of accessTokens){
+        const decryptedAccessToken =  decrypt(encryptedAccessToken);
+        const Transactionrequest={
+          access_token: decryptedAccessToken,
+          start_date: thirtyDaysAgo,
+          end_date: today,
+        }
+
+        const response = await plaidClient.transactionsGet(Transactionrequest);
+        transactions.push(...response.data.transactions)
+      }
+
+      if (returnData) {
+        return transactions;
+      }
+      else{
+        return res.status(200).json(transactions);
+      }
     } catch (err) {
       next(err);
     }
@@ -125,7 +140,6 @@ const transactionSync = async (req, res, next)=>{
 // Save to Server
 const accountsSave = async (req, res, next)=>{
   const {  itemId, accountData } = req.body;
-  console.log(itemId, accountData);
   try{
     const existingAccount = await Account.findOne({
       userId: req.user._id,
@@ -133,7 +147,7 @@ const accountsSave = async (req, res, next)=>{
     })
 
     if (existingAccount) {
-      next(new BadRequestError(err400.message));
+      next(new BadRequestError("Account already exists"));
     }
 
     const  encryptedData  = encrypt(accountData);
@@ -143,6 +157,15 @@ const accountsSave = async (req, res, next)=>{
       itemId,
       accountData: encryptedData, // Store the encrypted object
     });
+
+    // Update the user's account list
+    const user = await User.findById(req.user._id);
+    if (!user) {
+      return next(new NotFoundError("User not found"));
+    }
+    user.accounts.push(newAccount._id);
+    await user.save();
+
     res.status(201).send(newAccount);
   } catch (err) {
     next(err);
@@ -172,7 +195,7 @@ const accountsRetrieve = async (req, res, next)=> {
   try {
     const account = await Account.findOne({ userId: req.user._id });
     if (!account) {
-      next(new NotFoundError(err404.message))
+      next(new NotFoundError("No account data found"));
     }
 
     const decryptedData = decrypt({content:account.accountData.content, iv:account.accountData.iv});
@@ -196,39 +219,16 @@ const transactionRetrieve = async (req, res, next)=> {
   }
 }
 
-const budgetAccounts = async (req, res, next)=> {
-  try {
-    const user = await User.findById(req.user._id).select('plaidData');
-    if (!user?.plaidData?.accessToken) {
-      throw new Error('Access token not found for the user');
-    }
-    const decryptedToken = decrypt(user.plaidData.accessToken);
-    const accountsResponse = await plaidClient.accountsGet({ access_token: decryptedToken });
-    res.json(accountsResponse.data.accounts);
-  } catch (error) {
-    next(error);
-  }
-}
+
 
 const budgetOverview = async (req, res, next)=> {
 try {
-  const user = await User.findById(req.user._id).select('plaidData');
-  if (!user?.plaidData?.accessToken) {
-    throw new Error('Access token not found for the user');
+  // Get transactions from Plaid
+  const transactions =  await transactionSync(req, res, next, true);
+  if (!transactions) {
+    return next(new NotFoundError('No transactions found'));
   }
-  const decryptedToken = decrypt(user.plaidData.accessToken);
-
-  // Fetch transactions for the past 30 days
-  const today = new Date().toISOString().split('T')[0];
-  const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
-
-  const transactionsResponse = await plaidClient.transactionsGet({
-    access_token: decryptedToken,
-    start_date: thirtyDaysAgo,
-    end_date: today,
-  });
-
-  const transactions = transactionsResponse.data.transactions;
+  
 
   // Process data for budget overview
   const spendingByCategory = {};
@@ -256,14 +256,6 @@ try {
 }
 }
 
-
-
-
-
-
-
-
-
 module.exports = {
   linkTokenCreate, 
   exchangePublicToken, 
@@ -273,6 +265,5 @@ module.exports = {
   accountsSave, 
   transactionSave,
   accountsRetrieve,
-  transactionRetrieve,
-budgetAccounts,
-budgetOverview, };
+  transactionRetrieve, 
+  budgetOverview};

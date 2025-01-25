@@ -1,6 +1,15 @@
 const  mongoose = require("mongoose");
 const bycript = require('bcryptjs');
+const Account = require("./accounts");
 const validator = require("validator");
+
+
+
+const plaidDataSchema = new mongoose.Schema({
+    accessToken: { type: Object, default: null,}, // Encrypted Token is an object
+    accountId: {type: String, default: null,},
+  
+});
 
 const userSchema = new mongoose.Schema({
   name: {
@@ -35,12 +44,8 @@ const userSchema = new mongoose.Schema({
     required: [true, "The password field is required."],
     select: false,
   },
-  plaidData: 
-    {
-      accessToken: { type: Object, default: null,}, // Encrypted Token is an object
-      accountId: {type: String, default: null,},
-    }
-  ,
+  accounts: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Account' }], // Reference to Account model
+  plaidData: [plaidDataSchema],
 });
 
 userSchema.statics.findUserByCredentials = function (email, password){
@@ -62,4 +67,5 @@ userSchema.statics.findUserByCredentials = function (email, password){
 
 
 const User = mongoose.model("User", userSchema);
+
 module.exports = User;

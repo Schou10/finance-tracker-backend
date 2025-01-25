@@ -7,13 +7,8 @@ const AccountSchema = new Schema({
     ref: 'User',
     required: true,
   },
-  itemId:{
-    type: String,
-    unique: true,
-    required: true,
-  },
   accountData: {
-    type: Object, // Encrypted account details
+    type: Object, // Encrypted account details for short term storage
     required: true,
   },
   createdAt:{

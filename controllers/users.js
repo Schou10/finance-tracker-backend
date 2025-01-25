@@ -6,7 +6,7 @@ const { NotFoundError } = require('../errors/notfounderror');
 const { ConflictError } = require('../errors/conflicterror');
 const User = require("../models/users");
 const { JWT_SECRET } = require("../utils/config");
-const {err400, err401, err404, err409} =require("../utils/errors");
+
 
 
 // POST /users creates a new user
@@ -20,10 +20,10 @@ const createUser = (req, res, next) => {
   }))
   .catch((err)=>{
     if(err.code === 11000){
-      next(new ConflictError(err409.message));
+      next(new ConflictError("Email already exists"));
     }
     if (err.name === "ValidationError"){
-      next(new BadRequestError(err400.message));
+      next(new BadRequestError("Invalid input data"));
     }
     next(err)
   });
@@ -34,7 +34,7 @@ const createUser = (req, res, next) => {
 const login = (req, res, next) => {
   const { email, password } = req.body;
   if(!email || !password){
-    next( new NotFoundError(err400.message))
+    next( new NotFoundError("Email and password are required"));
   }
   return User.findUserByCredentials(email, password)
   .then((user) => {
@@ -52,7 +52,7 @@ const login = (req, res, next) => {
   })
     .catch((err) => {
       if (err.message === "Incorrect password or email"){
-       next( new UnauthorizedError(err401.message));
+       next( new UnauthorizedError("Incorrect password or email"));
       }
       next(err)
     });
@@ -87,17 +87,29 @@ const updateUser = (req, res, next)=>{
 const getCurrentUser = (req, res, next)=> {
   const  userId  = req.user._id;
   if(!userId){
-    throw new NotFoundError(err404.message )
+    throw new NotFoundError("User not found");
   }
   return User.findById(userId)
   .orFail()
   .then((user)=> res.status(200).send(user))
   .catch((err)=>{
     if (err.name === "ValidationError"){
-      next(new BadRequestError(err400.message));
+      next(new BadRequestError("Invalid input data"));
     }
     next(err)
   });
 }
 
-module.exports =  {  createUser,  login, updateUser, getCurrentUser };
+const deleteUser = (req, res, next) => {
+  const userId = req.user._id;
+  return User.findByIdAndDelete(userId)
+  .then(() => res.status(200).send({ message: "User deleted successfully" }))
+  .catch((err) => {
+    if (err.name === "DocumentNotFoundError") {
+      next(new NotFoundError("User not found"));
+    }
+    next(err);
+  });
+};
+
+module.exports =  {  createUser,  login, updateUser, getCurrentUser, deleteUser };
