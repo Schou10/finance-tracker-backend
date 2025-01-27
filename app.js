@@ -7,17 +7,10 @@ const {errors} = require('celebrate');
 const mainRouter = require('./routes/index');
 const errorHandler = require('./middlewares/error-handler');
 const {requestLogger, errorLogger} = require('./middlewares/loggers')
-const bodyParser = require("body-parser");
 
 
 const app = express();
 const {PORT= 3001} = process.env;
-
-const corsOptions ={
-    origin: ['https://www.finance-tracker.zanity.net', 'https://finance-tracker.zanity.net', 'http://localhost:3000/'], // Add allowed origins
-    // methods: ['GET', 'POST', 'PATCH', 'DELETE'], // Allowed methods
-    // allowedHeaders: ['Content-Type', 'Authorization'], // Allowed headers
-}
 
 
 mongoose.set('strictQuery', true);
