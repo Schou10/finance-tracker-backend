@@ -7,7 +7,7 @@ const GoalSchema = new Schema({
     ref: 'User',
     required: true,
   },
-  itemId:{
+  goalId:{
     type: String,
     unique: true,
     required: true,

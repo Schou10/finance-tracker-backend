@@ -11,7 +11,7 @@ const createGoal = async (req, res, next) => {
     const { goalData } = req.body;
     const goal = await Goal.create({
       userId: req.user._id,
-      itemId: uuidv4(),
+      goalId: uuidv4(),
       goalData,
     });
     res.status(201).json(goal);

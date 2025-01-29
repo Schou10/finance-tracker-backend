@@ -22,11 +22,8 @@ mongoose.connection.on('error', err => {
 });
 
 app.use(express.json());
-app.use(cors({
-    origin: 'https://finance-tracker.zanity.net', // Adjust to your frontend URL
-    methods: ['GET', 'POST', 'PUT', 'DELETE'],     // Include allowed methods
-    credentials: true    // Include this if you need to send cookies or authentication info
-  }));
+app.use(cors());
+
 
 // app.use(bodyParser.json());
 

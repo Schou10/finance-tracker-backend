@@ -10,7 +10,7 @@ const validateURL = (value, helpers) => {
 // Goal Body Validation
 module.exports.validateId = celebrate({
   params: Joi.object().keys({
-    itemId: Joi.string().length(24).hex().required().messages({
+    goalId: Joi.string().length(24).hex().required().messages({
       "string.length": 'The "goalId" field must be 24 characters long',
       "string.hex": 'The "goalId" field must be a hexadecimal string',
       "any.required": 'The "goalId" field must be filled in',
