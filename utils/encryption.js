@@ -1,5 +1,5 @@
 const crypto = require("crypto");
-console.log(process.env);
+console.log("Encryption Key: ",process.env.ENCRYPTION_KEY);
 
 const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY.padEnd(16, '0').slice(0, 16);
 const IV_LENGTH = 16;
