@@ -1,4 +1,15 @@
-require('dotenv').config({path: '/home/aschou101229/backend/.env'});
+const path = require("path");
+const dotenv = require("dotenv");
+
+// Check if running in production
+const isProduction = process.env.NODE_ENV === "production";
+
+// Load environment variables based on the environment
+dotenv.config({
+  path: isProduction
+    ? "/home/aschou101229/backend/.env" // Production path
+    : path.resolve(__dirname, "./.env"), // Local development path
+});
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');

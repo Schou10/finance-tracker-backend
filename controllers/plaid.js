@@ -59,14 +59,19 @@ const exchangePublicToken = async (req, res, next) =>{
       return next(new NotFoundError('User not found'));
     }
 
-    // Initialize plaidData as an array if it's not already
-    if (!Array.isArray(user.plaidData)) {
-      user.plaidData = [user.plaidData];
-    }    
-    // Add new access token and account ID to plaidData array
-    user.plaidData.push({ accessToken: encryptedAccessToken, accountId: itemId });
+    const updatedUser = await User.findByIdAndUpdate(req.user._id, {
+      $push: {
+        plaidData: {
+          accountId: itemId,
+          accessToken: encryptedAccessToken,
+        },
+      }
+    })
 
-    await user.save();
+    if (!updatedUser){
+      next(new NotFoundError("User not found"));
+    }
+
     res.status(200).send( {message: "Access token stored successfully"});
   } catch (err) {
     next(err)

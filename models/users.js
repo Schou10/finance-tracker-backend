@@ -1,6 +1,5 @@
 const  mongoose = require("mongoose");
 const bycript = require('bcryptjs');
-const Account = require("./accounts");
 const validator = require("validator");
 
 
