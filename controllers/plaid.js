@@ -61,7 +61,7 @@ const exchangePublicToken = async (req, res, next) =>{
 
     // Initialize plaidData as an array if it's not already
     if (!Array.isArray(user.plaidData)) {
-      user.plaidData = [];
+      user.plaidData = [user.plaidData];
     }    
     // Add new access token and account ID to plaidData array
     user.plaidData.push({ accessToken: encryptedAccessToken, accountId: itemId });
