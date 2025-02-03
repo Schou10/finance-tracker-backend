@@ -1,5 +1,5 @@
 const crypto = require("crypto");
-const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY.padEnd(16, '0').slice(0, 16);
+const ENCRYPTION_KEY = (process.env.ENCRYPTION_KEY || "defaultKey").padEnd(16, '0').slice(0, 16);
 const IV_LENGTH = 16;
 
 function encrypt(data){
