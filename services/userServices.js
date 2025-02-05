@@ -7,7 +7,7 @@ async function getAccessTokenForUser(userId) {
   try{
   const user = await User.findById(userId);
   if (!user || !user.plaidData || user.plaidData.length=== 0){
-    throw new Error('Access token not found')
+    return []; // Returns an empty array if no user or no plaid data
   }
 
   return user.plaidData.map(data => data.accessToken);

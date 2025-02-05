@@ -12,8 +12,8 @@ const configuration = new Configuration({
   basePath: PlaidEnvironments.sandbox,
   baseOptions: {
     headers: {
-      'PLAID-CLIENT-ID': process.env.PLAID_CLIENT_ID,
-      'PLAID-SECRET': process.env.PLAID_SECRET,
+      'PLAID-CLIENT-ID': process.env.PLAID_CLIENT_ID , // Usually stored in the environment
+      'PLAID-SECRET': process.env.PLAID_SECRET , // Usually stored in the environment
     },
   },
 });
@@ -29,7 +29,7 @@ const linkTokenCreate = async (req, res, next)=>{
       client_name: "Andrew Schouten", //Company Name on Plaid Network for this Application
       products: process.env.PLAID_PRODUCTS.split(","),
       language: 'en',
-      redirect_uri: process.env.PLAID_REDIRECT_URI || "http://localhost:3000/",
+      redirect_uri: process.env.PLAID_REDIRECT_URI ||"http://localhost:3000/",
       country_codes: process.env.PLAID_COUNTRY_CODES.split(","),
   };
     try {
