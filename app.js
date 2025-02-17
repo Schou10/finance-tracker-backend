@@ -50,6 +50,12 @@ app.get('/crash-test', ()=>{
 
 app.use("/", mainRouter);
 
+app.use((err, req, res, next) => {
+  console.error(err);
+  res.status(err.statusCode || 500).json({ message: err.message || 'Internal Server Error' });
+});
+
+
 app.use(errorLogger);
 
 app.use(errors());

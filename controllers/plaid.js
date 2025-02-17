@@ -107,8 +107,6 @@ const accountsSync = async (req, res, next)=>{
         const response = await plaidClient.accountsBalanceGet({access_token: decryptedAccessToken});
         accounts.push(...response.data.accounts)
       }
-
-
       return res.json({accounts});
     } catch(err){
       next(err)

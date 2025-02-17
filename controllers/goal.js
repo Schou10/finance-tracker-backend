@@ -12,6 +12,7 @@ const createGoal = async (req, res, next) => {
     const goal = await Goal.create({
       userId: req.user._id,
       goalId: uuidv4(),
+      itemId: uuidv4(),
       goalData,
     });
     res.status(201).json(goal);
@@ -115,7 +116,6 @@ const saveToGoal = async (req, res, next) => {
     goal.goalData.currentAmount = newAmount;
 
     const updatedGoal = await goal.save();
-    console.log("Updated Goal:", updatedGoal);
     res.status(200).json(updatedGoal);
   } catch (err) {
     next(err);
